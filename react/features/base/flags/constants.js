@@ -42,3 +42,9 @@ export const TOOLBAR_BUTTONS = 'toolbar.buttons';
  * Default: disabled (false).
  */
 export const WELCOME_PAGE_ENABLED = 'welcomepage.enabled';
+
+/**
+ * Flag indicating if single participant message should be enabled.
+ * Default: enabled (false).
+ */
+export const SINGLE_PARTICIPANT_MESSAGE_ENABLED = 'single.participant.message.enabled';

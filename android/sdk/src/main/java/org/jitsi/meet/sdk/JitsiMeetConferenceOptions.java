@@ -60,6 +60,11 @@ public class JitsiMeetConferenceOptions implements Parcelable {
     private Bundle featureFlags;
 
     /**
+     * Message to display when only one participant has joined the conference.
+     */
+    private String singleParticipantMessage;
+
+    /**
      * Set to {@code true} to join the conference with audio / video muted or to start in audio
      * only mode respectively.
      */
@@ -93,6 +98,7 @@ public class JitsiMeetConferenceOptions implements Parcelable {
         public Builder() {
             featureFlags = new Bundle();
         }
+        private String singleParticipantMessage;
 
         /**\
          * Sets the server URL.
@@ -222,6 +228,17 @@ public class JitsiMeetConferenceOptions implements Parcelable {
         }
 
         /**
+         * Sets the message when only one participant is in conference.
+         * @param singleParticipantMessage - Message to display.
+         * @return - The {@link Builder} object itself so the method calls can be chained.
+         */
+        public Builder setSingleParticipantMessage(String singleParticipantMessage) {
+            this.singleParticipantMessage = singleParticipantMessage;
+
+            return this;
+        }
+
+        /**
          * Builds the immutable {@link JitsiMeetConferenceOptions} object with the configuration
          * that this {@link Builder} instance specified.
          * @return - The built {@link JitsiMeetConferenceOptions} object.
@@ -239,6 +256,7 @@ public class JitsiMeetConferenceOptions implements Parcelable {
             options.audioOnly = this.audioOnly;
             options.videoMuted = this.videoMuted;
             options.userInfo = this.userInfo;
+            options.singleParticipantMessage = this.singleParticipantMessage;
 
             return options;
         }
@@ -260,6 +278,7 @@ public class JitsiMeetConferenceOptions implements Parcelable {
         audioOnly = tmpAudioOnly == 0 ? null : tmpAudioOnly == 1;
         byte tmpVideoMuted = in.readByte();
         videoMuted = tmpVideoMuted == 0 ? null : tmpVideoMuted == 1;
+        singleParticipantMessage = in.readString();
     }
 
     Bundle asProps() {
@@ -316,6 +335,9 @@ public class JitsiMeetConferenceOptions implements Parcelable {
         urlProps.putBundle("config", config);
         props.putBundle("url", urlProps);
 
+        if (singleParticipantMessage != null) {
+            props.putString("singleParticipantMessage", singleParticipantMessage);
+        }
         return props;
     }
 
@@ -339,6 +361,7 @@ public class JitsiMeetConferenceOptions implements Parcelable {
         dest.writeString(room);
         dest.writeString(subject);
         dest.writeString(token);
+        dest.writeString(singleParticipantMessage);
         dest.writeBundle(colorScheme);
         dest.writeBundle(featureFlags);
         dest.writeBundle(userInfo != null ? userInfo.asBundle() : new Bundle());

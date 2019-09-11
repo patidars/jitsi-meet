@@ -18,6 +18,9 @@ import { getTrackByMediaTypeAndParticipant } from '../../tracks';
 
 import { shouldRenderParticipantVideo } from '../functions';
 import styles from './styles';
+import { getAppProp } from '../../../base/app';
+import { SINGLE_PARTICIPANT_MESSAGE_ENABLED, getFeatureFlag } from '../../flags';
+import { getParticipantCount } from '../../../base/participants';
 
 /**
  * The type of the React {@link Component} props of {@link ParticipantView}.
@@ -61,9 +64,27 @@ type Props = {
     disableVideo: ?boolean,
 
     /**
+     * Message to display when only one participant has joined.
+     */
+    _singleParticipantMessage: string,
+
+    /**
+     * Whether the single participant message feature has been enabled.
+     */
+    _singleParticipantMessageEnabled: boolean,
+
+    /**
      * Callback to invoke when the {@code ParticipantView} is clicked/pressed.
      */
     onPress: Function,
+
+    /**
+     * The number of participants in the conference.
+     *
+     * @private
+     * @type {number}
+     */
+    _participantCount: number,
 
     /**
      * The ID of the participant (to be) depicted by {@link ParticipantView}.
@@ -176,6 +197,35 @@ class ParticipantView extends Component<Props> {
     }
 
     /**
+     * Renders message when only one participant joined.
+     *
+     * @private
+     * @returns {ReactElement|null}
+     */
+    _renderSingleParticipantMessage() {
+
+        const {
+            _singleParticipantMessage: singleParticipantMessage,
+            t
+        } = this.props;
+
+        const messageText = singleParticipantMessage
+        && singleParticipantMessage.length > 0
+            ? singleParticipantMessage
+            : t('singleParticipant');
+
+        return (
+            <View
+                pointerEvents = 'box-none'
+                style = { styles.singleParticipantContainer }>
+                <Text style = { styles.singleParticipantMessageText }>
+                    { messageText }
+                </Text>
+            </View>
+        );
+    }
+
+    /**
      * Implements React's {@link Component#render()}.
      *
      * @inheritdoc
@@ -186,9 +236,13 @@ class ParticipantView extends Component<Props> {
             _connectionStatus: connectionStatus,
             _renderVideo: renderVideo,
             _videoTrack: videoTrack,
+            _singleParticipantMessageEnabled: singleParticipantMessageEnabled,
             onPress,
             tintStyle
         } = this.props;
+
+        const renderSingleParticipant = singleParticipantMessageEnabled
+            && this.props._participantCount === 1;
 
         // If the connection has problems, we will "tint" the video / avatar.
         const connectionProblem
@@ -237,6 +291,8 @@ class ParticipantView extends Component<Props> {
                         style = {
                             connectionProblem ? undefined : tintStyle } /> }
 
+                { renderSingleParticipant && this._renderSingleParticipantMessage() }
+
                 { this.props.useConnectivityInfoLabel
                     && this._renderConnectionInfo(connectionStatus) }
             </Container>
@@ -257,12 +313,16 @@ class ParticipantView extends Component<Props> {
 function _mapStateToProps(state, ownProps) {
     const { disableVideo, participantId } = ownProps;
     let connectionStatus;
+    const singleParticipantMessage = getAppProp(state, 'singleParticipantMessage');
     let participantName;
 
     return {
         _connectionStatus:
             connectionStatus
                 || JitsiParticipantConnectionStatus.ACTIVE,
+        _singleParticipantMessageEnabled: getFeatureFlag(state, SINGLE_PARTICIPANT_MESSAGE_ENABLED, false),
+        _singleParticipantMessage: singleParticipantMessage,
+        _participantCount: getParticipantCount(state),
         _participantName: participantName,
         _renderVideo: shouldRenderParticipantVideo(state, participantId) && !disableVideo,
         _videoTrack:
