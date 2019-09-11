@@ -5,7 +5,8 @@ import { Platform } from 'react-native';
 
 import { ColorSchemeRegistry } from '../../../base/color-scheme';
 import { BottomSheet, hideDialog, isDialogOpen } from '../../../base/dialog';
-import { CHAT_ENABLED, IOS_RECORDING_ENABLED, getFeatureFlag } from '../../../base/flags';
+import { CHAT_ENABLED, DEFAULT_TOOLBAR_BUTTONS, IOS_RECORDING_ENABLED, TOOLBAR_BUTTONS,
+    getFeatureFlag } from '../../../base/flags';
 import { connect } from '../../../base/redux';
 import { StyleType } from '../../../base/styles';
 import { InfoDialogButton, InviteButton } from '../../../invite';
@@ -25,6 +26,16 @@ import ToggleCameraButton from './ToggleCameraButton';
 type Props = {
 
     /**
+     * Whether the audio only feature has been enabled.
+     */
+    _audioOnlyEnabled: boolean,
+
+    /**
+     * Whether the audio route feature has been enabled.
+     */
+    _audioRouteEnabled: boolean,
+
+    /**
      * The color-schemed stylesheet of the dialog feature.
      */
     _bottomSheetStyles: StyleType,
@@ -35,14 +46,54 @@ type Props = {
     _chatEnabled: boolean,
 
     /**
+     * Whether the closed caption feature has been enabled.
+     */
+    _closedCaptionEnabled: boolean,
+
+    /**
+     * Whether the info dialog feature has been enabled.
+     */
+    _infoDialogEnabled: boolean,
+
+    /**
+     * Whether the invite feature has been enabled.
+     */
+    _inviteEnabled: boolean,
+
+    /**
      * True if the overflow menu is currently visible, false otherwise.
      */
     _isOpen: boolean,
 
     /**
+     * Whether the live stream feature has been enabled.
+     */
+    _liveStreamEnabled: boolean,
+
+    /**
+     * Whether the raise hand feature has been enabled.
+     */
+    _raiseHandEnabled: boolean,
+
+    /**
      * Whether the recoding button should be enabled or not.
      */
     _recordingEnabled: boolean,
+
+    /**
+     * Whether the roomlock button has been enabled.
+     */
+    _roomLockEnabled: boolean,
+
+    /**
+     * Whether the tile view feature has been enabled.
+     */
+    _tileViewEnabled: boolean,
+
+    /**
+     * Whether the toggle camera button has been enabled.
+     */
+    _toggleCameraEnabled: boolean,
 
     /**
      * Used for hiding the dialog when the selection was completed.
@@ -91,23 +142,50 @@ class OverflowMenu extends Component<Props> {
 
         return (
             <BottomSheet onCancel = { this._onCancel }>
-                <AudioRouteButton { ...buttonProps } />
-                <ToggleCameraButton { ...buttonProps } />
-                <AudioOnlyButton { ...buttonProps } />
-                <RoomLockButton { ...buttonProps } />
-                <ClosedCaptionButton { ...buttonProps } />
+                {
+                    this.props._audioRouteEnabled
+                        && <AudioRouteButton { ...buttonProps } />
+                }
+                {
+                    this.props._toggleCameraEnabled
+                        && <ToggleCameraButton { ...buttonProps } />
+                }
+                {
+                    this.props._audioOnlyEnabled
+                        && <AudioOnlyButton { ...buttonProps } />
+                }
+                {
+                    this.props._roomLockEnabled
+                        && <RoomLockButton { ...buttonProps } />
+                }
+                {
+                    this.props._closedCaptionEnabled
+                        && <ClosedCaptionButton { ...buttonProps } />
+                }
                 {
                     this.props._recordingEnabled
                         && <RecordButton { ...buttonProps } />
                 }
-                <LiveStreamButton { ...buttonProps } />
-                <TileViewButton { ...buttonProps } />
-                <InviteButton { ...buttonProps } />
                 {
-                    this.props._chatEnabled
+                    this.props._liveStreamEnabled
+                        && <LiveStreamButton { ...buttonProps } />
+                }
+                {
+                    this.props._tileViewEnabled
+                        && <TileViewButton { ...buttonProps } />
+                }
+                {
+                    this.props._inviteEnabled
+                        && <InviteButton { ...buttonProps } />
+                }
+                {
+                    this.props._chatEnabled && this.props._infoDialogEnabled
                         && <InfoDialogButton { ...buttonProps } />
                 }
-                <RaiseHandButton { ...buttonProps } />
+                {
+                    this.props._raiseHandEnabled
+                        && <RaiseHandButton { ...buttonProps } />
+                }
             </BottomSheet>
         );
     }
@@ -139,12 +217,26 @@ class OverflowMenu extends Component<Props> {
  * @returns {Props}
  */
 function _mapStateToProps(state) {
+    const overflowButtons = getFeatureFlag(state, TOOLBAR_BUTTONS, DEFAULT_TOOLBAR_BUTTONS);
+    const recordingEnabled = Platform.OS === 'ios' ? getFeatureFlag(state, IOS_RECORDING_ENABLED)
+        && overflowButtons.includes('recording') : overflowButtons.includes('recording');
+
     return {
+        _audioOnlyEnabled: overflowButtons.includes('audioonly'),
+        _audioRouteEnabled: overflowButtons.includes('audioroute'),
         _bottomSheetStyles:
             ColorSchemeRegistry.get(state, 'BottomSheet'),
         _chatEnabled: getFeatureFlag(state, CHAT_ENABLED, true),
+        _closedCaptionEnabled: overflowButtons.includes('closedcaption'),
+        _infoDialogEnabled: overflowButtons.includes('infodialog'),
+        _inviteEnabled: overflowButtons.includes('invite'),
         _isOpen: isDialogOpen(state, OverflowMenu_),
-        _recordingEnabled: Platform.OS !== 'ios' || getFeatureFlag(state, IOS_RECORDING_ENABLED)
+        _liveStreamEnabled: overflowButtons.includes('livestream'),
+        _raiseHandEnabled: overflowButtons.includes('raisehand'),
+        _recordingEnabled: recordingEnabled,
+        _roomLockEnabled: overflowButtons.includes('roomlock'),
+        _tileViewEnabled: overflowButtons.includes('tileview'),
+        _toggleCameraEnabled: overflowButtons.includes('togglecamera')
     };
 }
 
