@@ -25,6 +25,12 @@
     -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-camera-light-off:before {
+  content: "\e931";
+}
+.icon-camera-light:before {
+  content: "\e936";
+}
 .icon-cancel:before {
   content: "\e91c";
 }

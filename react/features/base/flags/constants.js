@@ -19,6 +19,12 @@ export const DEFAULT_TOOLBAR_BUTTONS = 'audiomute,audioonly,audioroute,closedcap
 + 'recording,livestream,overflowmenu,raisehand,roomlock,tileview,togglecamera,videomute';
 
 /**
+ * Flag indicating if flashlight should be enabled in iOS.
+ * Default: enabled (true).
+ */
+export const IOS_FLASHLIGHT_ENABLED = 'ios.flashlight.enabled';
+
+/**
  * Flag indicating if recording should be enabled in iOS.
  * Default: disabled (false).
  */
