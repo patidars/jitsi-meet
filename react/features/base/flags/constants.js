@@ -26,6 +26,12 @@ export const CLOSE_CAPTIONS_ENABLED = 'close-captions.enabled';
 export const CHAT_ENABLED = 'chat.enabled';
 
 /**
+ * Default toolbar buttons to display.
+ */
+export const DEFAULT_TOOLBAR_BUTTONS = 'audiomute,audioonly,audioroute,closedcaption,hangup,invite'
++ 'recording,livestream,overflowmenu,raisehand,roomlock,tileview,togglecamera,videomute,shareddocument,help';
+
+/**
  * Flag indicating if invite functionality should be enabled.
  * Default: enabled (true).
  */
@@ -42,6 +48,13 @@ export const IOS_RECORDING_ENABLED = 'ios.recording.enabled';
  * Default: auto-detected.
  */
 export const PIP_ENABLED = 'pip.enabled';
+
+
+/**
+ * The name of the toolbar buttons to display. If present,
+ * the button will display.
+ */
+export const TOOLBAR_BUTTONS = 'toolbar.buttons';
 
 /**
  * Flag indicating if the welcome page should be enabled.

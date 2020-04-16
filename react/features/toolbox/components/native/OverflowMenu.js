@@ -6,7 +6,8 @@ import Collapsible from 'react-native-collapsible';
 
 import { ColorSchemeRegistry } from '../../../base/color-scheme';
 import { BottomSheet, hideDialog, isDialogOpen } from '../../../base/dialog';
-import { IOS_RECORDING_ENABLED, getFeatureFlag } from '../../../base/flags';
+import { DEFAULT_TOOLBAR_BUTTONS, IOS_RECORDING_ENABLED, TOOLBAR_BUTTONS,
+    getFeatureFlag } from '../../../base/flags';
 import { IconDragHandle } from '../../../base/icons';
 import { connect } from '../../../base/redux';
 import { StyleType } from '../../../base/styles';
@@ -32,9 +33,34 @@ import styles from './styles';
 type Props = {
 
     /**
+     * Whether the audio only feature has been enabled.
+     */
+    _audioOnlyEnabled: boolean,
+
+    /**
+     * Whether the audio route feature has been enabled.
+     */
+    _audioRouteEnabled: boolean,
+
+    /**
      * The color-schemed stylesheet of the dialog feature.
      */
     _bottomSheetStyles: StyleType,
+
+    /**
+     * Whether the closed caption feature has been enabled.
+     */
+    _closedCaptionEnabled: boolean,
+
+    /**
+     * Whether the help button has been enabled.
+     */
+    _helpButton: boolean,
+
+    /**
+     * Whether the invite feature has been enabled.
+     */
+    _inviteEnabled: boolean,
 
     /**
      * True if the overflow menu is currently visible, false otherwise.
@@ -42,9 +68,39 @@ type Props = {
     _isOpen: boolean,
 
     /**
+     * Whether the live stream feature has been enabled.
+     */
+    _liveStreamEnabled: boolean,
+
+    /**
+     * Whether the raise hand feature has been enabled.
+     */
+    _raiseHandEnabled: boolean,
+
+    /**
      * Whether the recoding button should be enabled or not.
      */
     _recordingEnabled: boolean,
+
+    /**
+     * Whether the roomlock button has been enabled.
+     */
+    _roomLockEnabled: boolean,
+
+    /**
+     * Whether the sharedDocument button has been enabled.
+     */
+    _sharedDocumentButton: boolean,
+
+    /**
+     * Whether the tile view feature has been enabled.
+     */
+    _tileViewEnabled: boolean,
+
+    /**
+     * Whether the toggle camera button has been enabled.
+     */
+    _toggleCameraEnabled: boolean,
 
     /**
      * Used for hiding the dialog when the selection was completed.
@@ -120,29 +176,67 @@ class OverflowMenu extends PureComponent<Props, State> {
             afterClick: this._onToggleMenu,
             visible: !showMore
         };
+        const isMoreButtonsAvailable = this.props._toggleCameraEnabled || this.props._tileViewEnabled
+        || this.props._recordingEnabled || this.props._liveStreamEnabled || this.props._roomLockEnabled
+        || this.props._closedCaptionEnabled || this.props._sharedDocumentButton || this.props._helpButton;
 
         return (
             <BottomSheet
                 onCancel = { this._onCancel }
                 onSwipe = { this._onSwipe }
-                renderHeader = { this._renderMenuExpandToggle }>
-                <AudioRouteButton { ...buttonProps } />
-                <InviteButton { ...buttonProps } />
-                <AudioOnlyButton { ...buttonProps } />
-                <RaiseHandButton { ...buttonProps } />
-                <MoreOptionsButton { ...moreOptionsButtonProps } />
+                renderHeader = { isMoreButtonsAvailable && this._renderMenuExpandToggle }>
+                {
+                    this.props._audioRouteEnabled
+                        && <AudioRouteButton { ...buttonProps } />
+                }
+                {
+                    this.props._inviteEnabled
+                        && <InviteButton { ...buttonProps } />
+                }
+                {
+                    this.props._audioOnlyEnabled
+                        && <AudioOnlyButton { ...buttonProps } />
+                }
+                {
+                    this.props._raiseHandEnabled
+                        && <RaiseHandButton { ...buttonProps } />
+                }
+                {
+                    isMoreButtonsAvailable && <MoreOptionsButton { ...moreOptionsButtonProps } />
+                }
                 <Collapsible collapsed = { !showMore }>
-                    <ToggleCameraButton { ...buttonProps } />
-                    <TileViewButton { ...buttonProps } />
+                    {
+                        this.props._toggleCameraEnabled
+                        && <ToggleCameraButton { ...buttonProps } />
+                    }
+                    {
+                        this.props._tileViewEnabled
+                            && <TileViewButton { ...buttonProps } />
+                    }
                     {
                         this.props._recordingEnabled
                             && <RecordButton { ...buttonProps } />
                     }
-                    <LiveStreamButton { ...buttonProps } />
-                    <RoomLockButton { ...buttonProps } />
-                    <ClosedCaptionButton { ...buttonProps } />
-                    <SharedDocumentButton { ...buttonProps } />
-                    <HelpButton { ...buttonProps } />
+                    {
+                        this.props._liveStreamEnabled
+                            && <LiveStreamButton { ...buttonProps } />
+                    }
+                    {
+                        this.props._roomLockEnabled
+                            && <RoomLockButton { ...buttonProps } />
+                    }
+                    {
+                        this.props._closedCaptionEnabled
+                            && <ClosedCaptionButton { ...buttonProps } />
+                    }
+                    {
+                        this.props._sharedDocumentButton
+                            && <SharedDocumentButton { ...buttonProps } />
+                    }
+                    {
+                        this.props._helpButton
+                            && <HelpButton { ...buttonProps } />
+                    }
                 </Collapsible>
             </BottomSheet>
         );
@@ -238,10 +332,25 @@ class OverflowMenu extends PureComponent<Props, State> {
  * @returns {Props}
  */
 function _mapStateToProps(state) {
+    const overflowButtons = getFeatureFlag(state, TOOLBAR_BUTTONS, DEFAULT_TOOLBAR_BUTTONS);
+    const recordingEnabled = Platform.OS === 'ios' ? getFeatureFlag(state, IOS_RECORDING_ENABLED)
+        && overflowButtons.includes('recording') : overflowButtons.includes('recording');
+
     return {
+        _audioOnlyEnabled: overflowButtons.includes('audioonly'),
+        _audioRouteEnabled: overflowButtons.includes('audioroute'),
         _bottomSheetStyles: ColorSchemeRegistry.get(state, 'BottomSheet'),
+        _closedCaptionEnabled: overflowButtons.includes('closedcaption'),
+        _helpButton: overflowButtons.includes('help'),
+        _inviteEnabled: overflowButtons.includes('invite'),
         _isOpen: isDialogOpen(state, OverflowMenu_),
-        _recordingEnabled: Platform.OS !== 'ios' || getFeatureFlag(state, IOS_RECORDING_ENABLED)
+        _liveStreamEnabled: overflowButtons.includes('livestream'),
+        _raiseHandEnabled: overflowButtons.includes('raisehand'),
+        _recordingEnabled: recordingEnabled,
+        _roomLockEnabled: overflowButtons.includes('roomlock'),
+        _sharedDocumentButton: overflowButtons.includes('shareddocument'),
+        _tileViewEnabled: overflowButtons.includes('tileview'),
+        _toggleCameraEnabled: overflowButtons.includes('togglecamera')
     };
 }
 

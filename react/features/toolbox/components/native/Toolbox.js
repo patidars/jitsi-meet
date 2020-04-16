@@ -4,7 +4,7 @@ import React, { PureComponent } from 'react';
 import { View } from 'react-native';
 
 import { ColorSchemeRegistry } from '../../../base/color-scheme';
-import { CHAT_ENABLED, getFeatureFlag } from '../../../base/flags';
+import { CHAT_ENABLED, DEFAULT_TOOLBAR_BUTTONS, TOOLBAR_BUTTONS, getFeatureFlag } from '../../../base/flags';
 import { Container } from '../../../base/react';
 import { connect } from '../../../base/redux';
 import { StyleType } from '../../../base/styles';
@@ -26,14 +26,34 @@ import VideoMuteButton from '../VideoMuteButton';
 type Props = {
 
     /**
+     * Whether the audio mute feature has been enabled.
+     */
+    _audioMuteEnabled: boolean,
+
+    /**
      * Whether the chat feature has been enabled. The meeting info button will be displayed in its place when disabled.
      */
     _chatEnabled: boolean,
 
     /**
+     * Whether the hangup feature has been enabled.
+     */
+    _hangupEnabled: boolean,
+
+    /**
+     * Whether the overflow menu feature has been enabled.
+     */
+    _overflowMenuEnabled: boolean,
+
+    /**
      * The color-schemed stylesheet of the feature.
      */
     _styles: StyleType,
+
+    /**
+     * Whether the video mute feature has been enabled.
+     */
+    _videoMuteEnabled: boolean,
 
     /**
      * The indicator which determines whether the toolbox is visible.
@@ -105,7 +125,8 @@ class Toolbox extends PureComponent<Props> {
      * @returns {React$Node}
      */
     _renderToolbar() {
-        const { _chatEnabled, _styles } = this.props;
+        const { _audioMuteEnabled, _chatEnabled, _hangupEnabled, _overflowMenuEnabled, _styles,
+            _videoMuteEnabled } = this.props;
         const { buttonStyles, buttonStylesBorderless, hangupButtonStyles, toggledButtonStyles } = _styles;
 
         return (
@@ -127,17 +148,29 @@ class Toolbox extends PureComponent<Props> {
                             styles = { buttonStyles }
                             toggledStyles = { toggledButtonStyles } />
                 }
-                <AudioMuteButton
-                    styles = { buttonStyles }
-                    toggledStyles = { toggledButtonStyles } />
-                <HangupButton
-                    styles = { hangupButtonStyles } />
-                <VideoMuteButton
-                    styles = { buttonStyles }
-                    toggledStyles = { toggledButtonStyles } />
-                <OverflowMenuButton
-                    styles = { buttonStylesBorderless }
-                    toggledStyles = { toggledButtonStyles } />
+                {
+                    _audioMuteEnabled
+                        && <AudioMuteButton
+                            styles = { buttonStyles }
+                            toggledStyles = { toggledButtonStyles } />
+                }
+                {
+                    _hangupEnabled
+                        && <HangupButton
+                            styles = { hangupButtonStyles } />
+                }
+                {
+                    _videoMuteEnabled
+                        && <VideoMuteButton
+                            styles = { buttonStyles }
+                            toggledStyles = { toggledButtonStyles } />
+                }
+                {
+                    _overflowMenuEnabled
+                        && <OverflowMenuButton
+                            styles = { buttonStylesBorderless }
+                            toggledStyles = { toggledButtonStyles } />
+                }
             </View>
         );
     }
@@ -151,15 +184,25 @@ class Toolbox extends PureComponent<Props> {
  * {@code Toolbox} props.
  * @private
  * @returns {{
+ *     _audioMuteEnabled: boolean,
  *     _chatEnabled: boolean,
+ *     _hangupEnabled: boolean,
+ *     _overflowMenuEnabled: boolean,
  *     _styles: StyleType,
+ *     _videoMuteEnabled: boolean,
  *     _visible: boolean
  * }}
  */
 function _mapStateToProps(state: Object): Object {
+    const toolbarButtons = getFeatureFlag(state, TOOLBAR_BUTTONS, DEFAULT_TOOLBAR_BUTTONS);
+
     return {
+        _audioMuteEnabled: toolbarButtons.includes('audiomute'),
         _chatEnabled: getFeatureFlag(state, CHAT_ENABLED, true),
+        _hangupEnabled: toolbarButtons.includes('hangup'),
+        _overflowMenuEnabled: toolbarButtons.includes('overflowmenu'),
         _styles: ColorSchemeRegistry.get(state, 'Toolbox'),
+        _videoMuteEnabled: toolbarButtons.includes('videomute'),
         _visible: isToolboxVisible(state)
     };
 }
